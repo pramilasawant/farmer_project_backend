@@ -1,0 +1,112 @@
+-- Create the updated database
+CREATE DATABASE IF NOT EXISTS farmer_project_db;
+
+-- Use the updated database
+USE farmer_project_db;
+
+-- Table: roles
+CREATE TABLE IF NOT EXISTS roles (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    rolename VARCHAR(100) NOT NULL,
+    roledescription TEXT
+);
+
+-- Table: features
+CREATE TABLE IF NOT EXISTS features (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    featuresname VARCHAR(255) NOT NULL,
+    featuresdescription TEXT
+);
+
+-- Table: role_feature_mapping
+CREATE TABLE IF NOT EXISTS role_feature_mapping (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    role_id INT NOT NULL,
+    feature_id INT NOT NULL,
+    FOREIGN KEY (role_id) REFERENCES roles(id),
+    FOREIGN KEY (feature_id) REFERENCES features(id),
+    UNIQUE KEY UK_role_feature_mapping (role_id, feature_id)
+);
+
+-- Table: users
+CREATE TABLE IF NOT EXISTS users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255),
+    password VARCHAR(255),
+    phoneNo VARCHAR(20),
+    addressLine1 TEXT,
+    pincode1 VARCHAR(10),
+    addressLine2 TEXT,
+    pincode2 VARCHAR(10),
+    role VARCHAR(50),
+    img LONGBLOB,
+    identityProof LONGBLOB
+);
+
+-- Table: farmers
+CREATE TABLE IF NOT EXISTS farmers (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,  -- Foreign key to users table
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,  -- Assuming password is hashed
+    contact_number VARCHAR(20),
+    address TEXT NOT NULL,
+    farm_details TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Table: products
+CREATE TABLE IF NOT EXISTS products (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2) NOT NULL,
+    category_id INT,  -- Foreign key to categories table (if categories are used)
+    -- img field to store URL or path to product image
+    img VARCHAR(255)
+);
+
+-- Table: farmer_product_requests
+CREATE TABLE IF NOT EXISTS farmer_product_requests (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    farmer_id INT NOT NULL,  -- Foreign key to farmers table
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    price DECIMAL(10, 2) NOT NULL,
+    img LONGBLOB,
+    is_approved BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id)
+);
+
+-- Table: orders
+CREATE TABLE IF NOT EXISTS orders (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    amount DECIMAL(10, 2) NOT NULL,
+    discount DECIMAL(10, 2),
+    total_amount DECIMAL(10, 2) NOT NULL,
+    payment VARCHAR(50),
+    order_status VARCHAR(50) NOT NULL,
+    tracking_id VARCHAR(100),
+    order_description TEXT,
+    coupon_id INT,
+    address TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+-- Table: cart_items
+CREATE TABLE IF NOT EXISTS cart_items (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT NOT NULL,
+    product_id INT NOT NULL,
+    quantity INT NOT NULL,
+    price DECIMAL(10, 2) NOT NULL,
+    user_id INT NOT NULL,
+    FOREIGN KEY (order_id) REFERENCES orders(id),
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE KEY UK_cart_items_order_product (order_id, product_id)
+);
